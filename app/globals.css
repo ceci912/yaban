@@ -46,6 +46,10 @@ main { min-height: 100vh; overflow: hidden; }
   margin-left: auto; border: 1px solid var(--line); background: rgba(255,255,255,.55); color: var(--ink);
   padding: 10px 17px; border-radius: 999px;
 }
+.account-nav { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.account-nav select { width:auto; min-width:110px; padding:9px 30px 9px 12px; border-radius:999px; background:white; }
+.account-nav .ghost-button { margin-left:0; }
+.account-button { border:0; background:none; color:var(--muted); padding:9px 5px; font-size:12px; }
 .hero {
   max-width: 1180px; min-height: 650px; margin: auto; padding: 54px 28px 76px;
   display: grid; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 58px;
@@ -60,6 +64,7 @@ main { min-height: 100vh; overflow: hidden; }
 .hero-copy > p { max-width: 520px; color: var(--muted); font-size: 17px; line-height: 1.9; margin: 28px 0; }
 .hero-actions { display: flex; align-items: center; gap: 18px; }
 .primary-button {
+  display:inline-flex; align-items:center; justify-content:center; text-decoration:none;
   border: 0; background: var(--green); color: white; font-weight: 700; padding: 15px 23px; border-radius: 13px;
   box-shadow: 0 9px 24px rgba(32,122,91,.2); transition: .2s ease;
 }
@@ -97,6 +102,23 @@ main { min-height: 100vh; overflow: hidden; }
 .sprout { position:absolute; left:18%; top:-28px; font-size:45px; color:var(--deep-green); transform:rotate(25deg); }
 
 .form-page, .dashboard { max-width: 980px; min-height: 690px; margin: auto; padding: 56px 28px 90px; }
+.loading-page { min-height:100vh; display:grid; place-content:center; justify-items:center; gap:12px; color:var(--muted); }
+.loading-page .brand-mark { width:54px; height:54px; font-size:24px; }
+.auth-page { max-width:980px; min-height:680px; margin:auto; padding:68px 28px 90px; display:grid; grid-template-columns:1fr 420px; align-items:center; gap:70px; }
+.auth-intro h2 { font-family:"Songti SC",serif; font-size:43px; line-height:1.35; margin:0 0 20px; }
+.auth-intro > p { color:var(--muted); font-size:15px; line-height:1.85; }
+.auth-benefits { display:grid; gap:10px; margin-top:30px; }
+.auth-benefits span { display:flex; align-items:center; gap:12px; font-weight:700; }
+.auth-benefits b { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; background:var(--mint); color:var(--green); font-size:10px; }
+.auth-card { background:white; border:1px solid var(--line); border-radius:24px; padding:30px; box-shadow:0 24px 80px rgba(24,62,48,.11); }
+.auth-card .tag { color:var(--green); font-size:11px; font-weight:800; }
+.auth-card h3 { font-family:"Songti SC",serif; font-size:28px; margin:7px 0 5px; }
+.auth-card > p { color:var(--muted); font-size:11px; line-height:1.6; margin:0 0 24px; }
+.auth-error { padding:10px 12px; margin:-6px 0 14px; background:#fff0ec; color:#9b4935; border-radius:10px; font-size:12px; }
+.auth-submit { width:100%; }
+.auth-switch, .auth-back { width:100%; margin-top:13px; }
+.auth-back { color:var(--muted); margin-top:5px; }
+.auth-card > small { display:block; color:#92a099; font-size:9px; line-height:1.55; text-align:center; border-top:1px solid var(--line); margin-top:16px; padding-top:14px; }
 .form-heading { text-align: center; margin-bottom: 28px; }
 .form-heading h2, .welcome h2 { font-family: "Songti SC", serif; font-size: 38px; margin: 0 0 12px; }
 .form-heading p, .welcome p { color: var(--muted); }
@@ -212,6 +234,24 @@ textarea { min-height: 92px; resize: vertical; }
 .adjust-card > div { display:grid; gap:5px; }
 .adjust-card b { font-size:13px; }
 .adjust-card span { color:var(--muted); font-size:11px; }
+.calendar-card {
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:20px;
+  margin-top:18px; padding:22px; border-radius:20px; background:#f0ead9; border:1px solid #e5dcc5;
+}
+.calendar-icon { width:64px; height:70px; border-radius:14px; background:white; overflow:hidden; display:grid; place-content:center; text-align:center; box-shadow:0 10px 24px rgba(75,67,40,.08); }
+.calendar-icon::before { content:"每周"; display:block; background:var(--green); color:white; font-size:9px; margin:-16px -20px 9px; padding:6px 20px; }
+.calendar-icon b { font-size:22px; line-height:1; }
+.calendar-icon span { color:var(--muted); font-size:9px; margin-top:4px; }
+.calendar-copy .tag { color:var(--green); font-size:9px; font-weight:800; letter-spacing:.08em; }
+.calendar-copy h3 { font-family:"Songti SC",serif; font-size:20px; margin:5px 0 7px; }
+.calendar-copy p { color:#66746e; font-size:11px; line-height:1.65; margin:0; }
+.calendar-copy small { display:block; color:#887b5a; font-size:9px; margin-top:7px; }
+.calendar-actions { display:grid; gap:8px; min-width:170px; }
+.calendar-actions .primary-button, .calendar-actions .secondary-button { padding:11px 14px; font-size:11px; box-shadow:none; }
+.download-link { text-align:center; text-decoration:none; font-size:10px; }
+.calendar-help { grid-column:2/-1; color:var(--muted); font-size:10px; }
+.calendar-help summary { color:var(--green); cursor:pointer; font-weight:700; }
+.calendar-help p { line-height:1.6; margin:8px 0 0; }
 .primary-button:disabled { cursor:not-allowed; opacity:.45; transform:none; box-shadow:none; }
 .report-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
 .secondary-button { border:1px solid var(--line); background:white; color:var(--ink); padding:14px 20px; border-radius:13px; }
@@ -220,11 +260,18 @@ footer b { color:var(--green); }
 
 @media (max-width: 760px) {
   .nav-note { display:none; }
+  .nav { gap:10px; }
+  .account-nav { gap:5px; }
+  .account-nav select { min-width:86px; max-width:105px; }
+  .account-nav .ghost-button { padding:9px 11px; font-size:11px; }
+  .account-button { display:none; }
   .hero { grid-template-columns:1fr; padding-top:35px; }
   .hero h1 { font-size:46px; }
   .hero-visual { min-height:430px; }
   .trust-row { gap:10px 18px; }
-  .two-cols, .three-cols, .report-grid, .portrait-grid, .review-grid, .subject-grid, .psychology-grid, .book-grid { grid-template-columns:1fr; }
+  .two-cols, .three-cols, .report-grid, .portrait-grid, .review-grid, .subject-grid, .psychology-grid, .book-grid, .auth-page { grid-template-columns:1fr; }
+  .auth-page { padding-top:35px; gap:28px; }
+  .auth-intro h2 { font-size:32px; }
   .month-grid { grid-template-columns:1fr 1fr; }
   .welcome { align-items:flex-start; }
   .welcome h2, .form-heading h2 { font-size:30px; }
@@ -233,6 +280,9 @@ footer b { color:var(--green); }
   .task-time { display:none; }
   .adjust-card { align-items:flex-start; flex-direction:column; }
   .adjust-card .primary-button { width:100%; }
+  .calendar-card { grid-template-columns:auto 1fr; align-items:start; }
+  .calendar-actions { grid-column:1/-1; width:100%; }
+  .calendar-help { grid-column:1/-1; }
   footer { flex-direction:column; }
 }
 

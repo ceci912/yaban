@@ -5,9 +5,10 @@ type AssessmentFormProps = {
   onChange: (value: ChildProfile) => void;
   onSubmit: () => void;
   onReset: () => void;
+  saving?: boolean;
 };
 
-export function AssessmentForm({ value, onChange, onSubmit, onReset }: AssessmentFormProps) {
+export function AssessmentForm({ value, onChange, onSubmit, onReset, saving = false }: AssessmentFormProps) {
   function update<K extends keyof ChildProfile>(key: K, next: ChildProfile[K]) {
     onChange({ ...value, [key]: next });
   }
@@ -77,10 +78,20 @@ export function AssessmentForm({ value, onChange, onSubmit, onReset }: Assessmen
             </select>
           </label>
         </div>
+        <div className="two-cols">
+          <label>
+            工作日提醒时间
+            <input type="time" value={value.weekdayTime} onChange={(e) => update("weekdayTime", e.target.value)} />
+          </label>
+          <label>
+            周末提醒时间
+            <input type="time" value={value.weekendTime} onChange={(e) => update("weekendTime", e.target.value)} />
+          </label>
+        </div>
         <div className="form-foot">
           <button className="text-button" onClick={onReset}>恢复示例</button>
-          <button className="primary-button" onClick={onSubmit}>
-            生成家长行动计划 <span>→</span>
+          <button className="primary-button" disabled={saving} onClick={onSubmit}>
+            {saving ? "正在保存…" : "保存并生成计划"} <span>→</span>
           </button>
         </div>
       </div>

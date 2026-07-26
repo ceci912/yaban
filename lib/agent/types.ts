@@ -15,6 +15,22 @@ export type ChildProfile = {
   goal: GrowthGoal;
   dailyMinutes: number;
   supportMode: SupportMode;
+  weekdayTime: string;
+  weekendTime: string;
+};
+
+export type SavedChild = {
+  id: string;
+  profile: ChildProfile;
+  cycle: number;
+  calendarToken: string;
+  updatedAt: number;
+};
+
+export type WeeklyCheckin = {
+  feedback: Record<string, TaskFeedback>;
+  weeklyNote: string;
+  childMood: "轻松" | "一般" | "有点抗拒";
 };
 
 export type GrowthTask = {

@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { generatePlan } from "../../lib/agent/generate-plan";
-import type { ChildProfile, TaskFeedback } from "../../lib/agent/types";
+import type { SavedChild, TaskFeedback, WeeklyCheckin } from "../../lib/agent/types";
 
 type GrowthDashboardProps = {
-  profile: ChildProfile;
+  child: SavedChild;
   onEdit: () => void;
+  onCycleChange: (cycle: number) => Promise<void>;
 };
 
 const feedbackOptions: Array<{ value: TaskFeedback; label: string }> = [
@@ -15,48 +16,72 @@ const feedbackOptions: Array<{ value: TaskFeedback; label: string }> = [
   { value: "dislike", label: "孩子不喜欢" },
 ];
 
-export function GrowthDashboard({ profile, onEdit }: GrowthDashboardProps) {
+export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboardProps) {
   const [tab, setTab] = useState<
     "week" | "portrait" | "subjects" | "psychology" | "books" | "month" | "review"
   >("week");
   const [feedback, setFeedback] = useState<Record<string, TaskFeedback>>({});
-  const [cycle, setCycle] = useState(1);
   const [showReason, setShowReason] = useState<string | null>(null);
   const [weeklyNote, setWeeklyNote] = useState("");
   const [childMood, setChildMood] = useState<"轻松" | "一般" | "有点抗拒">("轻松");
   const [copyState, setCopyState] = useState("复制本周计划");
+  const [calendarCopyState, setCalendarCopyState] = useState("复制安卓订阅地址");
+  const [saveState, setSaveState] = useState("正在读取云端记录…");
   const [hydrated, setHydrated] = useState(false);
+  const profile = child.profile;
+  const cycle = child.cycle;
   const plan = useMemo(() => generatePlan(profile, feedback, cycle), [profile, feedback, cycle]);
   const name = profile.name.trim() || "孩子";
   const completed = Object.values(feedback).filter((item) => item !== "pending").length;
+  const calendarPath = `/api/calendar/${child.calendarToken}`;
+  const calendarHttpsUrl = typeof window === "undefined" ? calendarPath : `${window.location.origin}${calendarPath}`;
+  const calendarWebcalUrl = calendarHttpsUrl.replace(/^https?:\/\//, "webcal://");
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("yaban-weekly-checkin");
-      if (saved) {
-        const value = JSON.parse(saved);
-        setFeedback(value.feedback ?? {});
-        setWeeklyNote(value.weeklyNote ?? "");
-        setChildMood(value.childMood ?? "轻松");
-        setCycle(value.cycle ?? 1);
+    let cancelled = false;
+    void (async () => {
+      try {
+        const response = await fetch(`/api/checkins?childId=${encodeURIComponent(child.id)}&cycle=${cycle}`, {
+          cache: "no-store",
+        });
+        const data = (await response.json()) as { checkin?: WeeklyCheckin };
+        if (!cancelled && data.checkin) {
+          setFeedback(data.checkin.feedback ?? {});
+          setWeeklyNote(data.checkin.weeklyNote ?? "");
+          setChildMood(data.checkin.childMood ?? "轻松");
+        }
+        if (!cancelled) setSaveState("已与家长账号同步");
+      } catch {
+        if (!cancelled) setSaveState("云端读取失败，请刷新重试");
+      } finally {
+        if (!cancelled) setHydrated(true);
       }
-    } catch {
-      // A fresh check-in is a valid fallback.
-    } finally {
-      setHydrated(true);
-    }
-  }, []);
+    })();
+    return () => { cancelled = true; };
+  }, [child.id, cycle]);
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(
-      "yaban-weekly-checkin",
-      JSON.stringify({ feedback, weeklyNote, childMood, cycle }),
-    );
-  }, [feedback, weeklyNote, childMood, cycle, hydrated]);
+    setSaveState("正在自动保存…");
+    const timer = window.setTimeout(() => {
+      const checkin: WeeklyCheckin = { feedback, weeklyNote, childMood };
+      void fetch("/api/checkins", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ childId: child.id, cycle, checkin }),
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("save failed");
+          setSaveState("已自动保存到家长账号");
+        })
+        .catch(() => setSaveState("保存失败，请检查网络"));
+    }, 550);
+    return () => window.clearTimeout(timer);
+  }, [feedback, weeklyNote, childMood, child.id, cycle, hydrated]);
 
-  function adjustNextWeek() {
-    setCycle((current) => current + 1);
+  async function adjustNextWeek() {
+    setSaveState("正在生成下一周…");
+    await onCycleChange(cycle + 1);
     setTab("week");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -74,6 +99,16 @@ export function GrowthDashboard({ profile, onEdit }: GrowthDashboardProps) {
       window.setTimeout(() => setCopyState("复制本周计划"), 2200);
     } catch {
       setCopyState("复制失败，请用保存报告");
+    }
+  }
+
+  async function copyCalendarUrl() {
+    try {
+      await navigator.clipboard.writeText(calendarHttpsUrl);
+      setCalendarCopyState("✓ 已复制，去日历网页版添加");
+      window.setTimeout(() => setCalendarCopyState("复制安卓订阅地址"), 2600);
+    } catch {
+      setCalendarCopyState("复制失败，请长按地址");
     }
   }
 
@@ -150,6 +185,27 @@ export function GrowthDashboard({ profile, onEdit }: GrowthDashboardProps) {
             <button className="primary-button" disabled={completed === 0} onClick={adjustNextWeek}>
               根据反馈调整下一周
             </button>
+          </div>
+          <div className="calendar-card">
+            <div className="calendar-icon" aria-hidden="true"><b>3</b><span>件事</span></div>
+            <div className="calendar-copy">
+              <span className="tag">不用每周回网站找计划</span>
+              <h3>把{name}的行动计划订阅到手机日历</h3>
+              <p>
+                周一、周三和周六会成为具体事件，并提前 10 分钟提醒。生成下一周后，
+                同一个订阅地址会自动提供最新计划。
+              </p>
+              <small>订阅地址相当于私密钥匙，请只发给共同照顾孩子的家人。</small>
+            </div>
+            <div className="calendar-actions">
+              <a className="primary-button" href={calendarWebcalUrl}>苹果一键订阅</a>
+              <button className="secondary-button" onClick={copyCalendarUrl}>{calendarCopyState}</button>
+              <a className="text-button download-link" href={`${calendarPath}?download=1`}>下载本周 .ics 文件</a>
+            </div>
+            <details className="calendar-help">
+              <summary>安卓手机怎么添加？</summary>
+              <p>Google 日历需在电脑网页版打开“其他日历 → 通过网址”，粘贴上面的订阅地址；添加一次后会同步到手机。也可以直接下载本周 .ics 文件导入系统日历。</p>
+            </details>
           </div>
         </>
       ) : tab === "portrait" ? (
@@ -254,7 +310,7 @@ export function GrowthDashboard({ profile, onEdit }: GrowthDashboardProps) {
                 onChange={(event) => setWeeklyNote(event.target.value)}
               />
             </label>
-            <small>已自动保存在当前设备，下次打开可以继续。</small>
+            <small>{saveState}</small>
           </article>
           <aside className="review-summary">
             <small>芽伴复盘摘要</small>
@@ -266,7 +322,7 @@ export function GrowthDashboard({ profile, onEdit }: GrowthDashboardProps) {
                 : " 下一周保持小步推进，不因为顺利完成就突然加量。"}
             </p>
             {weeklyNote && <blockquote>“{weeklyNote}”</blockquote>}
-            <button className="primary-button" disabled={completed === 0} onClick={adjustNextWeek}>
+            <button className="primary-button" disabled={completed === 0} onClick={() => void adjustNextWeek()}>
               生成下一周计划
             </button>
           </aside>
