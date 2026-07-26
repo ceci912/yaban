@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AssessmentForm } from "../components/assessment/AssessmentForm";
 import { Hero } from "../components/home/Hero";
 import { GrowthDashboard } from "../components/report/GrowthDashboard";
@@ -8,6 +8,7 @@ import type { ChildProfile } from "../lib/agent/types";
 
 const defaultProfile: ChildProfile = {
   name: "小满",
+  gender: "女孩",
   grade: "二年级",
   focus: "15–25 分钟",
   interest: "画画、自然观察",
@@ -20,6 +21,19 @@ const defaultProfile: ChildProfile = {
 export default function Home() {
   const [profile, setProfile] = useState<ChildProfile>(defaultProfile);
   const [step, setStep] = useState<"intro" | "form" | "report">("intro");
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("yaban-child-profile");
+      if (saved) setProfile({ ...defaultProfile, ...JSON.parse(saved) });
+    } catch {
+      // Keep the safe demo defaults when local data is unavailable.
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("yaban-child-profile", JSON.stringify(profile));
+  }, [profile]);
 
   return (
     <main>

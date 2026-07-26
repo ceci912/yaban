@@ -1,4 +1,4 @@
-import type { ChildProfile, FocusRange, Grade, GrowthGoal, SupportMode } from "../../lib/agent/types";
+import type { ChildProfile, FocusRange, Gender, Grade, GrowthGoal, SupportMode } from "../../lib/agent/types";
 
 type AssessmentFormProps = {
   value: ChildProfile;
@@ -20,10 +20,16 @@ export function AssessmentForm({ value, onChange, onSubmit, onReset }: Assessmen
         <p>没有标准答案。信息越贴近家庭日常，计划越容易执行。</p>
       </div>
       <div className="form-card">
-        <div className="two-cols">
+        <div className="three-cols">
           <label>
             孩子的小名
             <input value={value.name} onChange={(e) => update("name", e.target.value)} />
+          </label>
+          <label>
+            孩子性别（可选）
+            <select value={value.gender} onChange={(e) => update("gender", e.target.value as Gender)}>
+              <option>男孩</option><option>女孩</option><option>不便说明</option>
+            </select>
           </label>
           <label>
             当前年级
@@ -81,4 +87,3 @@ export function AssessmentForm({ value, onChange, onSubmit, onReset }: Assessmen
     </section>
   );
 }
-

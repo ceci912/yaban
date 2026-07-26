@@ -4,6 +4,7 @@ import type {
   GrowthTask,
   TaskFeedback,
 } from "./types";
+import { createEducationModules } from "./education-content";
 
 const gradeCopy = {
   一年级: "先建立安全感与完成体验，不追求速度和数量",
@@ -129,8 +130,8 @@ export function generatePlan(
     priority: `${profile.goal}：${concernText}`,
     strategy: `${gradeCopy[profile.grade]}。家庭陪伴方式按“${profile.supportMode}”设计，每次控制在约 ${profile.dailyMinutes} 分钟。`,
     parentScript: `可以说：“我看到你刚才用了自己的办法。你想保持这样，还是下次换一种？”`,
-    evidence: [profile.grade, profile.focus, `每天约${profile.dailyMinutes}分钟`, profile.supportMode],
+    evidence: [profile.grade, profile.gender, profile.focus, `每天约${profile.dailyMinutes}分钟`, profile.supportMode],
     tasks: rawTasks.map((task) => adaptTask(task, feedback[task.id], profile.interest)),
+    ...createEducationModules(profile),
   };
 }
-
