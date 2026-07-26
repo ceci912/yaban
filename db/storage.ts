@@ -55,8 +55,37 @@ export async function ensureSchema(): Promise<void> {
           UNIQUE(child_id, cycle)
         )
       `),
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS courses (
+          id TEXT PRIMARY KEY,
+          child_id TEXT NOT NULL,
+          title TEXT NOT NULL,
+          provider TEXT NOT NULL DEFAULT '',
+          total_units REAL NOT NULL,
+          units_per_session REAL NOT NULL DEFAULT 1,
+          start_date TEXT NOT NULL,
+          weekdays_json TEXT NOT NULL,
+          class_time TEXT NOT NULL DEFAULT '',
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      `),
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS course_sessions (
+          id TEXT PRIMARY KEY,
+          course_id TEXT NOT NULL,
+          session_date TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'scheduled',
+          consumed_units REAL NOT NULL DEFAULT 0,
+          note TEXT NOT NULL DEFAULT '',
+          updated_at INTEGER NOT NULL,
+          UNIQUE(course_id, session_date)
+        )
+      `),
       db.prepare("CREATE INDEX IF NOT EXISTS sessions_parent_idx ON sessions(parent_id)"),
       db.prepare("CREATE INDEX IF NOT EXISTS children_parent_idx ON children(parent_id)"),
+      db.prepare("CREATE INDEX IF NOT EXISTS courses_child_idx ON courses(child_id)"),
+      db.prepare("CREATE INDEX IF NOT EXISTS course_sessions_course_idx ON course_sessions(course_id)"),
     ]);
   })().catch((error) => {
     schemaReady = null;

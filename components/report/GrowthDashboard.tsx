@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  createEncouragement,
+  type EncouragementTone,
+} from "../../lib/agent/encouragement";
 import { generatePlan } from "../../lib/agent/generate-plan";
 import { readingCatalog } from "../../lib/agent/reading-catalog";
 import type { SavedChild, TaskFeedback, WeeklyCheckin } from "../../lib/agent/types";
+import { CourseManager } from "../courses/CourseManager";
 
 type GrowthDashboardProps = {
   child: SavedChild;
@@ -17,15 +22,19 @@ const feedbackOptions: Array<{ value: TaskFeedback; label: string }> = [
   { value: "dislike", label: "孩子不喜欢" },
 ];
 
+const toneOrder: EncouragementTone[] = ["warm", "brief", "challenge"];
+
 export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboardProps) {
   const [tab, setTab] = useState<
-    "week" | "portrait" | "subjects" | "psychology" | "books" | "month" | "review"
+    "week" | "portrait" | "subjects" | "psychology" | "books" | "month" | "review" | "courses"
   >("week");
   const [feedback, setFeedback] = useState<Record<string, TaskFeedback>>({});
   const [showReason, setShowReason] = useState<string | null>(null);
   const [weeklyNote, setWeeklyNote] = useState("");
   const [childMood, setChildMood] = useState<"轻松" | "一般" | "有点抗拒">("轻松");
   const [copyState, setCopyState] = useState("复制本周计划");
+  const [encouragementTone, setEncouragementTone] = useState<Record<string, EncouragementTone>>({});
+  const [encouragementCopy, setEncouragementCopy] = useState<string | null>(null);
   const [calendarCopyState, setCalendarCopyState] = useState("复制安卓订阅地址");
   const [saveState, setSaveState] = useState("正在读取云端记录…");
   const [hydrated, setHydrated] = useState(false);
@@ -63,8 +72,8 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
 
   useEffect(() => {
     if (!hydrated) return;
-    setSaveState("正在自动保存…");
     const timer = window.setTimeout(() => {
+      setSaveState("正在自动保存…");
       const checkin: WeeklyCheckin = { feedback, weeklyNote, childMood };
       void fetch("/api/checkins", {
         method: "PUT",
@@ -113,6 +122,24 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
     }
   }
 
+  function changeEncouragement(taskId: string) {
+    setEncouragementTone((current) => {
+      const active = current[taskId] ?? "warm";
+      const next = toneOrder[(toneOrder.indexOf(active) + 1) % toneOrder.length];
+      return { ...current, [taskId]: next };
+    });
+  }
+
+  async function copyEncouragement(taskId: string, script: string) {
+    try {
+      await navigator.clipboard.writeText(script);
+      setEncouragementCopy(taskId);
+      window.setTimeout(() => setEncouragementCopy((current) => current === taskId ? null : current), 2200);
+    } catch {
+      setEncouragementCopy(null);
+    }
+  }
+
   return (
     <section className="dashboard">
       <div className="welcome">
@@ -137,13 +164,25 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
         <button className={tab === "books" ? "active" : ""} onClick={() => setTab("books")}>推荐书单</button>
         <button className={tab === "week" ? "active" : ""} onClick={() => setTab("week")}>本周行动</button>
         <button className={tab === "review" ? "active" : ""} onClick={() => setTab("review")}>家长复盘</button>
+        <button className={tab === "courses" ? "active" : ""} onClick={() => setTab("courses")}>课时管家</button>
       </div>
 
-      {tab === "week" ? (
+      {tab === "courses" ? (
+        <CourseManager childId={child.id} childName={name} />
+      ) : tab === "week" ? (
         <>
           <div className="report-grid">
             <div className="tasks-panel">
-              {plan.tasks.map((task, index) => (
+              {plan.tasks.map((task, index) => {
+                const taskFeedback = feedback[task.id] ?? "pending";
+                const encouragement = createEncouragement({
+                  profile,
+                  task,
+                  feedback: taskFeedback,
+                  tone: encouragementTone[task.id] ?? "warm",
+                });
+
+                return (
                 <article className={`task-card ${task.color}`} key={`${cycle}-${task.id}`}>
                   <div className="day-box"><span>{task.day}</span><b>0{index + 1}</b></div>
                   <div className="task-copy">
@@ -158,17 +197,41 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
                       {feedbackOptions.map((option) => (
                         <button
                           key={option.value}
-                          className={feedback[task.id] === option.value ? "selected" : ""}
+                          className={taskFeedback === option.value ? "selected" : ""}
                           onClick={() => setFeedback((current) => ({ ...current, [task.id]: option.value }))}
                         >
                           {option.label}
                         </button>
                       ))}
                     </div>
+                    {encouragement && (
+                      <div className="encouragement-card" aria-live="polite">
+                        <div className="encouragement-heading">
+                          <span>💬 现在可以这样鼓励</span>
+                          <small>依据本次表现生成</small>
+                        </div>
+                        <blockquote>“{encouragement.script}”</blockquote>
+                        <div className="encouragement-actions">
+                          <button
+                            className="encouragement-primary"
+                            onClick={() => void copyEncouragement(task.id, encouragement.script)}
+                          >
+                            {encouragementCopy === task.id ? "✓ 已复制" : "复制这句话"}
+                          </button>
+                          <button onClick={() => changeEncouragement(task.id)}>换一种说法</button>
+                        </div>
+                        <details>
+                          <summary>为什么这样说？</summary>
+                          <p>{encouragement.reason}</p>
+                          <p className="encouragement-avoid"><b>尽量别说：</b>{encouragement.avoid}</p>
+                        </details>
+                      </div>
+                    )}
                   </div>
                   <div className="task-time">{task.minutes} min</div>
                 </article>
-              ))}
+                );
+              })}
             </div>
             <aside className="parent-tip">
               <span className="tip-icon">☀</span>
