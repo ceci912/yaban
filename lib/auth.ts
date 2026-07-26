@@ -45,7 +45,8 @@ async function derivePassword(password: string, salt: string): Promise<string> {
     {
       name: "PBKDF2",
       hash: "SHA-256",
-      iterations: 120_000,
+      // Cloudflare Workers currently accepts PBKDF2 iteration counts up to 100,000.
+      iterations: 100_000,
       salt: new TextEncoder().encode(salt),
     },
     material,
