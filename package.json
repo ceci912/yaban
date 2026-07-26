@@ -11,7 +11,9 @@
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "cloudflare:migrate": "wrangler d1 migrations apply yaban-family-growth-db --remote --config wrangler.cloudflare.jsonc",
+    "cloudflare:deploy": "npm run build && wrangler deploy --config wrangler.cloudflare.jsonc"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",
