@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { generatePlan } from "../../lib/agent/generate-plan";
 import type { SavedChild, TaskFeedback, WeeklyCheckin } from "../../lib/agent/types";
+import { CourseManager } from "../courses/CourseManager";
 
 type GrowthDashboardProps = {
   child: SavedChild;
@@ -18,7 +19,7 @@ const feedbackOptions: Array<{ value: TaskFeedback; label: string }> = [
 
 export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboardProps) {
   const [tab, setTab] = useState<
-    "week" | "portrait" | "subjects" | "psychology" | "books" | "month" | "review"
+    "week" | "portrait" | "subjects" | "psychology" | "books" | "month" | "review" | "courses"
   >("week");
   const [feedback, setFeedback] = useState<Record<string, TaskFeedback>>({});
   const [showReason, setShowReason] = useState<string | null>(null);
@@ -136,9 +137,12 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
         <button className={tab === "books" ? "active" : ""} onClick={() => setTab("books")}>推荐书单</button>
         <button className={tab === "week" ? "active" : ""} onClick={() => setTab("week")}>本周行动</button>
         <button className={tab === "review" ? "active" : ""} onClick={() => setTab("review")}>家长复盘</button>
+        <button className={tab === "courses" ? "active" : ""} onClick={() => setTab("courses")}>课时管家</button>
       </div>
 
-      {tab === "week" ? (
+      {tab === "courses" ? (
+        <CourseManager childId={child.id} childName={name} />
+      ) : tab === "week" ? (
         <>
           <div className="report-grid">
             <div className="tasks-panel">
