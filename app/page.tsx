@@ -148,7 +148,7 @@ export default function Home() {
             <button className="account-button" onClick={logout} title={parent.username}>退出</button>
           </div>
         ) : (
-          <button className="ghost-button" onClick={() => setStep("auth")}>家长登录</button>
+          <button className="ghost-button" onClick={() => setStep("auth")}>登录</button>
         )}
       </header>
 
