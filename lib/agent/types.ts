@@ -1,0 +1,37 @@
+export type Grade = "一年级" | "二年级" | "三年级";
+export type FocusRange = "少于 15 分钟" | "15–25 分钟" | "25–40 分钟" | "40 分钟以上";
+export type GrowthGoal = "专注力" | "阅读表达" | "学习习惯" | "数学思维" | "情绪与自信";
+export type SupportMode = "工作日时间有限" | "每天可以陪伴" | "主要由孩子独立完成";
+export type TaskFeedback = "pending" | "done" | "hard" | "dislike";
+
+export type ChildProfile = {
+  name: string;
+  grade: Grade;
+  focus: FocusRange;
+  interest: string;
+  concern: string;
+  goal: GrowthGoal;
+  dailyMinutes: number;
+  supportMode: SupportMode;
+};
+
+export type GrowthTask = {
+  id: string;
+  day: string;
+  tag: string;
+  title: string;
+  detail: string;
+  minutes: number;
+  color: "mint" | "peach" | "yellow";
+  why: string;
+};
+
+export type GrowthPlan = {
+  strengths: string[];
+  priority: string;
+  strategy: string;
+  parentScript: string;
+  evidence: string[];
+  tasks: GrowthTask[];
+};
+
