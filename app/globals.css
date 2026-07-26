@@ -160,6 +160,18 @@ textarea { min-height: 92px; resize: vertical; }
 .feedback-row { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
 .feedback-row button { border:1px solid rgba(23,55,46,.13); background:rgba(255,255,255,.56); color:#52685f; border-radius:999px; padding:6px 9px; font-size:9px; transition:.18s ease; }
 .feedback-row button:hover, .feedback-row button.selected { color:white; background:var(--green); border-color:var(--green); }
+.encouragement-card { margin-top:14px; padding:16px; border:1px solid rgba(41,109,86,.18); border-radius:15px; background:rgba(255,255,255,.82); box-shadow:0 10px 24px rgba(28,76,61,.06); }
+.encouragement-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.encouragement-heading span { color:var(--deep-green); font-size:11px; font-weight:800; }
+.encouragement-heading small { color:#86958f; font-size:9px; }
+.encouragement-card blockquote { margin:12px 0; color:var(--ink); font-family:"Songti SC",serif; font-size:16px; line-height:1.75; }
+.encouragement-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.encouragement-actions button { padding:8px 11px; border:1px solid #d5e2dc; border-radius:10px; background:white; color:var(--green); font-size:10px; font-weight:700; cursor:pointer; }
+.encouragement-actions .encouragement-primary { border-color:var(--green); background:var(--green); color:white; }
+.encouragement-card details { margin-top:12px; padding-top:10px; border-top:1px solid rgba(41,109,86,.12); color:var(--muted); font-size:10px; }
+.encouragement-card summary { color:var(--green); cursor:pointer; font-weight:700; }
+.encouragement-card details p { margin:8px 0 0; line-height:1.65; }
+.encouragement-card .encouragement-avoid { color:#8c674f; }
 .task-time { font-size: 10px; padding: 7px 9px; border-radius: 999px; background: rgba(255,255,255,.6); white-space: nowrap; }
 .parent-tip { background: var(--deep-green); color: white; border-radius: 22px; padding: 25px; position: relative; overflow: hidden; }
 .parent-tip::after { content:""; position:absolute; width:130px; height:130px; border:28px solid rgba(255,255,255,.05); border-radius:50%; right:-50px; top:-45px; }
