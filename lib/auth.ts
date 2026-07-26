@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { ensureSchema, getD1 } from "../db/storage";
+import type { CaregiverRole } from "./caregiver";
 
 const SESSION_COOKIE = "yaban_session";
 const SESSION_DAYS = 30;
@@ -7,6 +8,7 @@ const SESSION_DAYS = 30;
 type ParentRow = {
   id: string;
   username: string;
+  caregiver_role: CaregiverRole;
   password_hash: string;
   password_salt: string;
 };
@@ -14,6 +16,7 @@ type ParentRow = {
 export type ParentSession = {
   id: string;
   username: string;
+  caregiverRole: CaregiverRole;
 };
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -65,7 +68,11 @@ export function validateCredentials(username: string, password: string): string 
   return null;
 }
 
-export async function registerParent(username: string, password: string): Promise<ParentSession> {
+export async function registerParent(
+  username: string,
+  password: string,
+  caregiverRole: CaregiverRole,
+): Promise<ParentSession> {
   await ensureSchema();
   const db = getD1();
   const normalized = normalizeUsername(username);
@@ -80,13 +87,13 @@ export async function registerParent(username: string, password: string): Promis
   const passwordHash = await derivePassword(password, salt);
   await db
     .prepare(
-      "INSERT INTO parents (id, username, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?)",
+      "INSERT INTO parents (id, username, caregiver_role, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .bind(id, normalized, passwordHash, salt, Date.now())
+    .bind(id, normalized, caregiverRole, passwordHash, salt, Date.now())
     .run();
 
   await createSession(id);
-  return { id, username: normalized };
+  return { id, username: normalized, caregiverRole };
 }
 
 export async function loginParent(username: string, password: string): Promise<ParentSession> {
@@ -95,7 +102,7 @@ export async function loginParent(username: string, password: string): Promise<P
   const normalized = normalizeUsername(username);
   const parent = await db
     .prepare(
-      "SELECT id, username, password_hash, password_salt FROM parents WHERE username = ?",
+      "SELECT id, username, caregiver_role, password_hash, password_salt FROM parents WHERE username = ?",
     )
     .bind(normalized)
     .first<ParentRow>();
@@ -105,7 +112,21 @@ export async function loginParent(username: string, password: string): Promise<P
   if (candidate !== parent.password_hash) throw new Error("账号或密码不正确");
 
   await createSession(parent.id);
-  return { id: parent.id, username: parent.username };
+  return {
+    id: parent.id,
+    username: parent.username,
+    caregiverRole: parent.caregiver_role,
+  };
+}
+
+export async function updateCaregiverRole(
+  parentId: string,
+  caregiverRole: CaregiverRole,
+): Promise<void> {
+  await getD1()
+    .prepare("UPDATE parents SET caregiver_role = ? WHERE id = ?")
+    .bind(caregiverRole, parentId)
+    .run();
 }
 
 async function createSession(parentId: string): Promise<void> {
@@ -138,15 +159,19 @@ export async function getParentSession(): Promise<ParentSession | null> {
   const tokenHash = await digest(token);
   const row = await getD1()
     .prepare(`
-      SELECT parents.id, parents.username, sessions.expires_at
+      SELECT parents.id, parents.username, parents.caregiver_role, sessions.expires_at
       FROM sessions
       JOIN parents ON parents.id = sessions.parent_id
       WHERE sessions.token_hash = ?
     `)
     .bind(tokenHash)
-    .first<{ id: string; username: string; expires_at: number }>();
+    .first<{ id: string; username: string; caregiver_role: CaregiverRole; expires_at: number }>();
   if (!row || row.expires_at <= Date.now()) return null;
-  return { id: row.id, username: row.username };
+  return {
+    id: row.id,
+    username: row.username,
+    caregiverRole: row.caregiver_role,
+  };
 }
 
 export async function requireParentSession(): Promise<ParentSession> {

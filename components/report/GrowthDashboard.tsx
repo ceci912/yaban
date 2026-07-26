@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { generatePlan } from "../../lib/agent/generate-plan";
+import { readingCatalog } from "../../lib/agent/reading-catalog";
 import type { SavedChild, TaskFeedback, WeeklyCheckin } from "../../lib/agent/types";
 
 type GrowthDashboardProps = {
@@ -236,6 +237,36 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
             <b>接下来请家长观察3件事</b>
             {plan.assessment.observeNext.map((item) => <span key={item}>✓ {item}</span>)}
           </div>
+          {plan.painPointGuidance.length > 0 && (
+            <div className="pain-guidance-grid">
+              {plan.painPointGuidance.map((item, index) => (
+                <article className="pain-guidance-card" key={item.label}>
+                  <span>优先痛点 0{index + 1}</span>
+                  <h3>{item.label}</h3>
+                  <div><b>先观察</b><p>{item.observe}</p></div>
+                  <div><b>家庭动作</b><p>{item.action}</p></div>
+                  <blockquote>{item.parentLanguage}</blockquote>
+                </article>
+              ))}
+            </div>
+          )}
+          <article className="companion-card">
+            <div>
+              <span>推荐陪伴方式</span>
+              <h3>{plan.companionPlan.mode}</h3>
+              <p>{plan.companionPlan.description}</p>
+            </div>
+            <div className="companion-columns">
+              <section>
+                <b>尽量避免</b>
+                {plan.companionPlan.avoid.map((item) => <p key={item}>× {item}</p>)}
+              </section>
+              <section>
+                <b>可以这样做</b>
+                {plan.companionPlan.doInstead.map((item) => <p key={item}>✓ {item}</p>)}
+              </section>
+            </div>
+          </article>
         </>
       ) : tab === "month" ? (
         <div className="month-grid">
@@ -278,18 +309,43 @@ export function GrowthDashboard({ child, onEdit, onCycleChange }: GrowthDashboar
           </aside>
         </div>
       ) : tab === "books" ? (
-        <div className="book-grid">
-          {plan.books.map((book, index) => (
-            <article key={book.title}>
-              <span>推荐 0{index + 1}</span>
-              <h3>{book.title}</h3>
-              <small>{book.author}</small>
-              <p>{book.reason}</p>
-              <div><b>亲子共读方法</b>{book.readTogether}</div>
-            </article>
-          ))}
-          <p className="book-source">书单优先参考教育部中小学生阅读指导目录与统编语文“快乐读书吧”，家长可结合孩子兴趣调整，不要求一次读完。</p>
-        </div>
+        <>
+          <div className="book-grid">
+            {plan.books.map((book, index) => (
+              <article key={book.title}>
+                <span>本周优先 0{index + 1}</span>
+                <h3>{book.title}</h3>
+                <small>{book.author}</small>
+                <p>{book.reason}</p>
+                <div><b>亲子共读方法</b>{book.readTogether}</div>
+              </article>
+            ))}
+            <p className="book-source">优先推荐结合当前年级与成长目标，每周选 1 本或一小段即可，不要求一次读完。</p>
+          </div>
+          <section className="reading-library">
+            <div className="library-heading">
+              <div>
+                <span className="tag">{profile.grade} · 完整书库</span>
+                <h3>按兴趣和阅读能力慢慢选</h3>
+              </div>
+              <b>{readingCatalog[profile.grade].reduce((total, group) => total + group.titles.length, 0)} 项书目与篇目</b>
+            </div>
+            <p className="library-note">以下内容来自你提供的分年级去重书单，保留课内、拓展与学校补充分类。它是选书参考，不代表孩子必须全部完成。</p>
+            <div className="reading-groups">
+              {readingCatalog[profile.grade].map((group, index) => (
+                <details key={group.category} open={index === 0}>
+                  <summary>
+                    <span>{group.category}<small>{group.source}</small></span>
+                    <b>{group.titles.length} 项</b>
+                  </summary>
+                  <div className="title-cloud">
+                    {group.titles.map((title) => <span key={title}>{title}</span>)}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </section>
+        </>
       ) : (
         <div className="review-grid">
           <article className="review-form">

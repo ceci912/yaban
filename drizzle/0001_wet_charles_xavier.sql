@@ -1,0 +1,1 @@
+ALTER TABLE `parents` ADD `caregiver_role` text DEFAULT '其他照顾者' NOT NULL;

@@ -1,4 +1,5 @@
 import type { ChildProfile, GrowthPlan } from "./types";
+import { painPointGuidance } from "./pain-points";
 
 const subjectPlans: Record<ChildProfile["grade"], GrowthPlan["subjects"]> = {
   一年级: [
@@ -40,16 +41,30 @@ export function createEducationModules(profile: ChildProfile) {
   const name = profile.name.trim() || "孩子";
   const concern = profile.concern.trim() || `希望提升${profile.goal}`;
   const emotionalConcern = /情绪|哭|怕|焦虑|生气|自信|同学|抗拒/.test(concern);
+  const selectedPainPoints = (profile.painPoints ?? []).slice(0, 3);
+  const youngerGrade = profile.grade === "一年级" || profile.grade === "二年级";
 
   return {
     assessment: {
-      summary: `${name}当前最适合从“优势兴趣 + 小步完成”进入成长计划。家长描述的主要场景是：${concern}。`,
+      summary: `${name}当前最适合从“优势兴趣 + 小步完成”进入成长计划。${selectedPainPoints.length ? `家长优先关注：${selectedPainPoints.join("、")}。` : ""}具体场景是：${concern}。`,
       possibleCause: `这不是医学诊断。根据“${profile.focus}”的投入时长和“${profile.supportMode}”的家庭条件，当前表现可能同时受到任务难度、启动方式、兴趣连接和亲子互动影响。`,
       observeNext: [
         "同一行为在作业、阅读和兴趣活动中是否一致",
         "任务开始前、进行中、结束后分别发生了什么",
         "调整时长或表达方式后，孩子是否更容易完成",
       ],
+    },
+    painPointGuidance: selectedPainPoints.map((label) => ({
+      label,
+      ...painPointGuidance[label],
+    })),
+    companionPlan: {
+      mode: youngerGrade ? "站点式陪伴" : "方法型陪伴",
+      description: youngerGrade
+        ? "家长在附近做自己的事，在启动、卡住和结束三个站点提供帮助，不全程盯着孩子。"
+        : "逐步从陪着做转向教计划、教复盘和检查结果，把执行权还给孩子。",
+      avoid: ["边陪伴边刷手机", "连续催促、讽刺或贴标签", "替孩子完成并检查到全对", "只问分数和排名"],
+      doInstead: ["约定短而专注的陪伴时间", "先描述具体行为，再讨论下一步", "给孩子有限选择和自查机会", "每周保留有效动作，不突然加量"],
     },
     subjects: subjectPlans[profile.grade].map((item) =>
       item.name === "语文" && profile.goal === "阅读表达"
@@ -75,4 +90,3 @@ export function createEducationModules(profile: ChildProfile) {
     ],
   };
 }
-

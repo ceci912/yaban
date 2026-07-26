@@ -19,6 +19,7 @@ export async function ensureSchema(): Promise<void> {
         CREATE TABLE IF NOT EXISTS parents (
           id TEXT PRIMARY KEY,
           username TEXT NOT NULL UNIQUE,
+          caregiver_role TEXT NOT NULL DEFAULT '其他照顾者',
           password_hash TEXT NOT NULL,
           password_salt TEXT NOT NULL,
           created_at INTEGER NOT NULL

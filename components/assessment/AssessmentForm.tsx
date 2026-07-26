@@ -1,4 +1,5 @@
-import type { ChildProfile, FocusRange, Gender, Grade, GrowthGoal, SupportMode } from "../../lib/agent/types";
+import { painPointOptions } from "../../lib/agent/pain-points";
+import type { ChildProfile, FocusRange, Gender, Grade, GrowthGoal, PainPoint, SupportMode } from "../../lib/agent/types";
 
 type AssessmentFormProps = {
   value: ChildProfile;
@@ -9,8 +10,25 @@ type AssessmentFormProps = {
 };
 
 export function AssessmentForm({ value, onChange, onSubmit, onReset, saving = false }: AssessmentFormProps) {
+  const selectedPainPoints = value.painPoints ?? [];
+
   function update<K extends keyof ChildProfile>(key: K, next: ChildProfile[K]) {
     onChange({ ...value, [key]: next });
+  }
+
+  function updateGrade(grade: Grade) {
+    onChange({ ...value, grade, painPoints: [] });
+  }
+
+  function togglePainPoint(painPoint: PainPoint) {
+    const selected = selectedPainPoints.includes(painPoint);
+    if (!selected && selectedPainPoints.length >= 3) return;
+    update(
+      "painPoints",
+      selected
+        ? selectedPainPoints.filter((item) => item !== painPoint)
+        : [...selectedPainPoints, painPoint],
+    );
   }
 
   return (
@@ -34,7 +52,7 @@ export function AssessmentForm({ value, onChange, onSubmit, onReset, saving = fa
           </label>
           <label>
             当前年级
-            <select value={value.grade} onChange={(e) => update("grade", e.target.value as Grade)}>
+            <select value={value.grade} onChange={(e) => updateGrade(e.target.value as Grade)}>
               <option>一年级</option><option>二年级</option><option>三年级</option>
             </select>
           </label>
@@ -59,6 +77,29 @@ export function AssessmentForm({ value, onChange, onSubmit, onReset, saving = fa
           孩子最近喜欢什么？
           <input value={value.interest} onChange={(e) => update("interest", e.target.value)} />
         </label>
+        <fieldset className="pain-section">
+          <legend>最近最困扰的场景（最多选 3 项）</legend>
+          <p>芽伴会把选择转成观察重点、家庭动作和更合适的沟通话术。</p>
+          <div className="pain-option-grid">
+            {painPointOptions[value.grade].map((painPoint) => {
+              const selected = selectedPainPoints.includes(painPoint);
+              const disabled = !selected && selectedPainPoints.length >= 3;
+              return (
+                <button
+                  type="button"
+                  key={painPoint}
+                  className={selected ? "pain-option selected" : "pain-option"}
+                  disabled={disabled}
+                  aria-pressed={selected}
+                  onClick={() => togglePainPoint(painPoint)}
+                >
+                  <span>{selected ? "✓" : "+"}</span>{painPoint}
+                </button>
+              );
+            })}
+          </div>
+          <small>{selectedPainPoints.length}/3 已选择</small>
+        </fieldset>
         <label>
           你最想改善的一个具体场景
           <textarea value={value.concern} onChange={(e) => update("concern", e.target.value)} />

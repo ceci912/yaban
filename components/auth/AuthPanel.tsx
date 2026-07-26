@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { CAREGIVER_ROLES, type CaregiverRole } from "../../lib/caregiver";
 
 type AuthPanelProps = {
-  onAuthenticated: (parent: { id: string; username: string }) => void;
+  onAuthenticated: (parent: { id: string; username: string; caregiverRole: CaregiverRole }) => void;
   onBack: () => void;
 };
 
@@ -11,6 +12,7 @@ export function AuthPanel({ onAuthenticated, onBack }: AuthPanelProps) {
   const [mode, setMode] = useState<"login" | "register">("register");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [caregiverRole, setCaregiverRole] = useState<CaregiverRole>("妈妈");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,10 +24,10 @@ export function AuthPanel({ onAuthenticated, onBack }: AuthPanelProps) {
       const response = await fetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, caregiverRole }),
       });
       const data = (await response.json()) as {
-        parent?: { id: string; username: string };
+        parent?: { id: string; username: string; caregiverRole: CaregiverRole };
         error?: string;
       };
       if (!response.ok || !data.parent) throw new Error(data.error ?? "暂时无法登录");
@@ -53,6 +55,15 @@ export function AuthPanel({ onAuthenticated, onBack }: AuthPanelProps) {
         <span className="tag">{mode === "register" ? "首次使用" : "欢迎回来"}</span>
         <h3>{mode === "register" ? "创建家长账号" : "登录家长账号"}</h3>
         <p>可使用手机号、邮箱或容易记住的家庭账号名。</p>
+        <label>
+          你是孩子的
+          <select
+            value={caregiverRole}
+            onChange={(event) => setCaregiverRole(event.target.value as CaregiverRole)}
+          >
+            {CAREGIVER_ROLES.map((role) => <option key={role}>{role}</option>)}
+          </select>
+        </label>
         <label>
           家长账号
           <input

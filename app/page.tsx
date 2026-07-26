@@ -6,6 +6,7 @@ import { AuthPanel } from "../components/auth/AuthPanel";
 import { Hero } from "../components/home/Hero";
 import { GrowthDashboard } from "../components/report/GrowthDashboard";
 import type { ChildProfile, SavedChild } from "../lib/agent/types";
+import type { CaregiverRole } from "../lib/caregiver";
 
 const defaultProfile: ChildProfile = {
   name: "小满",
@@ -17,11 +18,12 @@ const defaultProfile: ChildProfile = {
   goal: "阅读表达",
   dailyMinutes: 20,
   supportMode: "工作日时间有限",
+  painPoints: ["拖拉磨蹭", "时间观念较弱"],
   weekdayTime: "19:30",
   weekendTime: "10:00",
 };
 
-type Parent = { id: string; username: string };
+type Parent = { id: string; username: string; caregiverRole: CaregiverRole };
 type Step = "intro" | "auth" | "form" | "report";
 
 export default function Home() {
@@ -144,8 +146,12 @@ export default function Home() {
                 {children.map((child) => <option key={child.id} value={child.id}>{child.profile.name}</option>)}
               </select>
             )}
+            <span className="account-role">{parent.caregiverRole}</span>
             <button className="ghost-button" onClick={newChild}>＋ 添加孩子</button>
-            <button className="account-button" onClick={logout} title={parent.username}>退出</button>
+            <button className="account-button" onClick={logout} title={`退出账号 ${parent.username}`}>
+              <span className="logout-full">退出登录</span>
+              <span className="logout-short">退出</span>
+            </button>
           </div>
         ) : (
           <button className="ghost-button" onClick={() => setStep("auth")}>登录</button>

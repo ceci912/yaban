@@ -5,6 +5,7 @@ export const parents = sqliteTable(
   {
     id: text("id").primaryKey(),
     username: text("username").notNull(),
+    caregiverRole: text("caregiver_role").notNull().default("其他照顾者"),
     passwordHash: text("password_hash").notNull(),
     passwordSalt: text("password_salt").notNull(),
     createdAt: integer("created_at").notNull(),

@@ -4,6 +4,21 @@ export type FocusRange = "少于 15 分钟" | "15–25 分钟" | "25–40 分钟
 export type GrowthGoal = "专注力" | "阅读表达" | "学习习惯" | "数学思维" | "情绪与自信";
 export type SupportMode = "工作日时间有限" | "每天可以陪伴" | "主要由孩子独立完成";
 export type TaskFeedback = "pending" | "done" | "hard" | "dislike";
+export type PainPoint =
+  | "注意力容易分散"
+  | "倾听指令困难"
+  | "生活自理较弱"
+  | "作业习惯未建立"
+  | "坐姿或握笔需要调整"
+  | "拖拉磨蹭"
+  | "时间观念较弱"
+  | "依赖家长"
+  | "不爱阅读"
+  | "阅读理解过渡困难"
+  | "作文表达困难"
+  | "英语拼写困难"
+  | "亲子沟通冲突"
+  | "学习信心下降";
 
 export type ChildProfile = {
   name: string;
@@ -15,6 +30,7 @@ export type ChildProfile = {
   goal: GrowthGoal;
   dailyMinutes: number;
   supportMode: SupportMode;
+  painPoints: PainPoint[];
   weekdayTime: string;
   weekendTime: string;
 };
@@ -55,6 +71,18 @@ export type GrowthPlan = {
     summary: string;
     possibleCause: string;
     observeNext: string[];
+  };
+  painPointGuidance: Array<{
+    label: PainPoint;
+    observe: string;
+    action: string;
+    parentLanguage: string;
+  }>;
+  companionPlan: {
+    mode: string;
+    description: string;
+    avoid: string[];
+    doInstead: string[];
   };
   subjects: Array<{
     name: "语文" | "数学" | "英语";

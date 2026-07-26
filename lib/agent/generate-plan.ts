@@ -91,17 +91,23 @@ export function generatePlan(
   const name = profile.name.trim() || "孩子";
   const core = goalLibrary[profile.goal];
   const concernText = profile.concern.trim() || `希望改善${profile.goal}`;
+  const educationModules = createEducationModules(profile);
+  const firstPainPoint = educationModules.painPointGuidance[0];
 
   const rawTasks: GrowthTask[] = [
     {
       id: "start",
       day: cycle === 1 ? "周一" : "下周一",
-      tag: "轻启动",
-      title: `${minutes}分钟可完成目标`,
-      detail: `开始前让${name}自己选一个${minutes}分钟内能完成的小目标，家长不追加任务。`,
+      tag: firstPainPoint ? "痛点行动" : "轻启动",
+      title: firstPainPoint ? `本周先改善：${firstPainPoint.label}` : `${minutes}分钟可完成目标`,
+      detail: firstPainPoint
+        ? firstPainPoint.action
+        : `开始前让${name}自己选一个${minutes}分钟内能完成的小目标，家长不追加任务。`,
       minutes,
       color: "mint",
-      why: `结合当前专注时长“${profile.focus}”，先保证任务可完成。`,
+      why: firstPainPoint
+        ? firstPainPoint.observe
+        : `结合当前专注时长“${profile.focus}”，先保证任务可完成。`,
     },
     {
       id: "goal",
@@ -132,6 +138,6 @@ export function generatePlan(
     parentScript: `可以说：“我看到你刚才用了自己的办法。你想保持这样，还是下次换一种？”`,
     evidence: [profile.grade, profile.gender, profile.focus, `每天约${profile.dailyMinutes}分钟`, profile.supportMode],
     tasks: rawTasks.map((task) => adaptTask(task, feedback[task.id], profile.interest)),
-    ...createEducationModules(profile),
+    ...educationModules,
   };
 }
